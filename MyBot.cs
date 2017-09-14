@@ -1,71 +1,55 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Battleships.Player.Interface;
 
 namespace BattleshipBot
 {
-  public class MyBot : IBattleshipsBot
-  {
-    private IGridSquare lastTarget;
-
-    public IEnumerable<IShipPosition> GetShipPositions()
+    public class MyBot : IBattleshipsBot
     {
-      lastTarget = null; // Forget all our history when we start a new game
+        private IGridSquare lastTarget;
+        private List<IGridSquare> history = new List<IGridSquare>();
+        private List<IGridSquare> allowedTargetSquares = new List<IGridSquare>();
 
-      return new List<IShipPosition>
-      {
-        GetShipPosition('A', 1, 'A', 5), // Aircraft Carrier
-        GetShipPosition('C', 1, 'C', 4), // Battleship
-        GetShipPosition('E', 1, 'E', 3), // Destroyer
-        GetShipPosition('G', 1, 'G', 3), // Submarine
-        GetShipPosition('I', 1, 'I', 2)  // Patrol boat
-      };
+        public IEnumerable<IShipPosition> GetShipPositions()
+        {
+            history.Clear(); // Forget all our history when we start a new game
+
+            var shipPosition = new ShipInitializer().GetRandomShipPlacement();
+            foreach (var ship in shipPosition)
+            {
+                Console.WriteLine(ship.StartingSquare.Row.ToString() + " " + ship.EndingSquare.Row.ToString());
+            }
+            return shipPosition;
+        }
+
+        private static ShipPosition GetShipPosition(char startRow, int startColumn, char endRow, int endColumn)
+        {
+            return new ShipPosition(new GridSquare(startRow, startColumn), new GridSquare(endRow, endColumn));
+        }
+
+        public IGridSquare SelectTarget()
+        {
+            var nextTarget = GetNextTarget();
+            lastTarget = nextTarget;
+            return nextTarget;
+        }
+
+        private IGridSquare GetNextTarget()
+        {
+            return Utilities.GetRandomSquare(this.allowedTargetSquares);
+        }
+
+        public void HandleShotResult(IGridSquare square, bool wasHit)
+        {
+            // Ignore whether we're successful
+        }
+
+        public void HandleOpponentsShot(IGridSquare square)
+        {
+            // Ignore what our opponent does
+        }
+
+        public string Name => "HA! Exceptional";
     }
-
-    private static ShipPosition GetShipPosition(char startRow, int startColumn, char endRow, int endColumn)
-    {
-      return new ShipPosition(new GridSquare(startRow, startColumn), new GridSquare(endRow, endColumn));
-    }
-
-    public IGridSquare SelectTarget()
-    {
-      var nextTarget = GetNextTarget();
-      lastTarget = nextTarget;
-      return nextTarget;
-    }
-
-    private IGridSquare GetNextTarget()
-    {
-      if (lastTarget == null)
-      {
-        return new GridSquare('A', 1);
-      }
-
-      var row = lastTarget.Row;
-      var col = lastTarget.Column + 1;
-      if (lastTarget.Column != 10)
-      {
-        return new GridSquare(row, col);
-      }
-
-      row = (char)(row + 1);
-      if (row > 'J')
-      {
-        row = 'A';
-      }
-      col = 1;
-      return new GridSquare(row, col);
-    }
-
-    public void HandleShotResult(IGridSquare square, bool wasHit)
-    {
-      // Ignore whether we're successful
-    }
-
-    public void HandleOpponentsShot(IGridSquare square)
-    {
-      // Ignore what our opponent does
-    }
-
-    public string Name => "Simple Example Bot";
-  }
 }
