@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Targetting.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Rows.cs" />
     <Compile Include="ShipInitializer.cs" />

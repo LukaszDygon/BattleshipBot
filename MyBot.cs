@@ -1,55 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Battleships.Player.Interface;
 
 namespace BattleshipBot
 {
+    public enum State
+    {
+        Searching,
+        SinkingShip
+    }
+
     public class MyBot : IBattleshipsBot
     {
         private IGridSquare lastTarget;
-        private List<IGridSquare> history = new List<IGridSquare>();
-        private List<IGridSquare> allowedTargetSquares = new List<IGridSquare>();
+        internal List<IGridSquare> History = new List<IGridSquare>();
+        internal List<IGridSquare> AllowedTargetSquares = new List<IGridSquare>();
+        internal List<int> ShipSizesToDestroy = new List<int>();
+        internal State State;
+        internal List<IGridSquare> ShipBeingSunk = new List<IGridSquare>();
+
+        public MyBot()
+        {
+            AllowedTargetSquares = Utilities.InitializeEmptyField();
+        }
 
         public IEnumerable<IShipPosition> GetShipPositions()
         {
-            history.Clear(); // Forget all our history when we start a new game
+            Initialize();
+            
+            var shipInitializer = new ShipInitializer();
+            var shipPositions = shipInitializer.GetRandomShipPlacement();
 
-            var shipPosition = new ShipInitializer().GetRandomShipPlacement();
-            foreach (var ship in shipPosition)
-            {
-                Console.WriteLine(ship.StartingSquare.Row.ToString() + " " + ship.EndingSquare.Row.ToString());
-            }
-            return shipPosition;
-        }
-
-        private static ShipPosition GetShipPosition(char startRow, int startColumn, char endRow, int endColumn)
-        {
-            return new ShipPosition(new GridSquare(startRow, startColumn), new GridSquare(endRow, endColumn));
+            return shipPositions;
         }
 
         public IGridSquare SelectTarget()
         {
-            var nextTarget = GetNextTarget();
+            var nextTarget = Targetting.GetNext(this);
             lastTarget = nextTarget;
             return nextTarget;
         }
 
-        private IGridSquare GetNextTarget()
-        {
-            return Utilities.GetRandomSquare(this.allowedTargetSquares);
-        }
-
         public void HandleShotResult(IGridSquare square, bool wasHit)
         {
-            // Ignore whether we're successful
+            this.AllowedTargetSquares.Remove(square);
+
+            if (wasHit)
+            {
+                Utilities.RemoveDiagonal(AllowedTargetSquares, square);
+                ShipBeingSunk.Add(square);
+                State = State.SinkingShip;
+            }
+
+            History.Add(square);
         }
 
         public void HandleOpponentsShot(IGridSquare square)
         {
-            // Ignore what our opponent does
+            History.Add(square);
         }
 
-        public string Name => "HA! Exceptional";
+        private void Initialize()
+        {
+            History.Clear(); // Forget all our History when we start a new game
+            State = State.Searching;
+            AllowedTargetSquares = Utilities.InitializeEmptyField();
+            ShipSizesToDestroy.AddRange(new List<int>(){2,3,3,4,5});
+        }
+
+        public string Name => "Transatlantic Labradoodle Leisure Ship";
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Battleships.Player.Interface;
 using NUnit.Framework;
 
 namespace BattleshipBot
@@ -14,7 +15,20 @@ namespace BattleshipBot
         {
             var bot = new MyBot();
             var shipPositions = bot.GetShipPositions();
-            Assert.AreEqual(5, bot.GetShipPositions().Count());
+            var emptyField = Utilities.InitializeEmptyField();
+            var randSquare = Utilities.GetRandomSquare(emptyField);
+
+            Assert.AreEqual(5, shipPositions.Count());
+        }
+
+        [Test]
+        public void Shot_Hits()
+        {
+            var bot = new MyBot();
+            bot.GetShipPositions();
+            bot.HandleShotResult(new GridSquare('B', 2), true);
+
+            Assert.AreEqual(95, bot.AllowedTargetSquares.Count);
         }
     }
 }
