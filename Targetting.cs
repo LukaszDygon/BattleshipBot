@@ -11,12 +11,12 @@ namespace BattleshipBot
     {
         public static IGridSquare GetNext(MyBot bot)
         {
-            var targetSquare = Utilities.GetAdjacentSquares(bot.ShipBeingSunk, bot.AllowedTargetSquares);
+            var targetSquare = Utilities.GetAdjacentShipSquare(bot.ShipBeingSunk, bot.AllowedTargetSquares);
 
             if (targetSquare == null || bot.ShipBeingSunk.Count == bot.ShipSizesToDestroy.Max())
             {
                 HandleEnemyShipDestroyed(bot);
-                return Utilities.GetRandomSquare(bot.AllowedTargetSquares);
+                return GetMostIsolated(bot);
             }
 
             return targetSquare;
@@ -35,13 +35,28 @@ namespace BattleshipBot
             bot.ShipBeingSunk.Clear();
         }
 
-        public static void GetMostIsolated(MyBot bot)
+        public static IGridSquare GetMostIsolated(MyBot bot)
         {
             var isolationLevel = new Dictionary<IGridSquare, int>();
             foreach (var square in bot.AllowedTargetSquares)
             {
-                Utilities.GetAdjacentSquares()
+                var border = bot.ShipSizesToDestroy.Max();
+                var modifier = GetTargetModifier(square, border);
+                isolationLevel.Add(square, Utilities.GetAdjacentSquares(square, bot.AllowedTargetSquares, border).Count + modifier);
             }
+
+            var topHits = isolationLevel.Where(x => x.Value == isolationLevel.Values.Max())
+                .ToDictionary(i => i.Key, i => i.Value);
+
+            return Utilities.GetRandomSquare((from kvp in topHits select kvp.Key).ToList());
+        }
+
+        private static int GetTargetModifier(IGridSquare square, int shortestShipLength)
+        {
+            if (square.Row < 'A' + shortestShipLength || square.Row > 'I' - shortestShipLength ||
+                square.Column < 1 + shortestShipLength || square.Column > 10 - shortestShipLength)
+                return 1 * shortestShipLength;
+            return 0;
         }
     }
 }

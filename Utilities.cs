@@ -38,14 +38,19 @@ namespace BattleshipBot
             }
         }
 
-        public static IGridSquare GetAdjacentSquare(List<IGridSquare> shipSquares, List<IGridSquare> availableSquares)
+        public static IGridSquare GetAdjacentShipSquare(List<IGridSquare> shipSquares, List<IGridSquare> availableSquares)
         {
 
             var nextSquares = new List<IGridSquare>();
 
             foreach (var square in shipSquares)
             {
-                nextSquares.AddRange(GetAdjacentSquares(square, availableSquares));
+                try
+                {
+                    nextSquares.AddRange(GetAdjacentSquares(square, availableSquares, 1));
+                }
+                catch {
+                }
             }
 
             if (nextSquares.Count == 0) return null;
@@ -53,14 +58,14 @@ namespace BattleshipBot
 
         }
 
-        public static List<IGridSquare> GetAdjacentSquares(IGridSquare square, List<IGridSquare> availableSquares)
+        public static List<IGridSquare> GetAdjacentSquares(IGridSquare square, List<IGridSquare> availableSquares, int border)
         {
             var adjacentSquares = new List<IGridSquare>();
-            adjacentSquares.AddRange(availableSquares.FindAll(x => x.Row >= square.Row - 1 &&
-                                                                x.Row <= square.Row + 1 &&
+            adjacentSquares.AddRange(availableSquares.FindAll(x => x.Row >= square.Row - border &&
+                                                                x.Row <= square.Row + border &&
                                                                 x.Column == square.Column));
-            adjacentSquares.AddRange(availableSquares.FindAll(x => x.Column >= square.Column - 1 &&
-                                                                x.Column <= square.Column + 1 &&
+            adjacentSquares.AddRange(availableSquares.FindAll(x => x.Column >= square.Column - border &&
+                                                                x.Column <= square.Column + border &&
                                                                 x.Row == square.Row));
             if (adjacentSquares.Count == 0) return null;
             return adjacentSquares;

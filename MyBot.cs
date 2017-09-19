@@ -14,7 +14,6 @@ namespace BattleshipBot
 
     public class MyBot : IBattleshipsBot
     {
-        private IGridSquare lastTarget;
         internal List<IGridSquare> History = new List<IGridSquare>();
         internal List<IGridSquare> AllowedTargetSquares = new List<IGridSquare>();
         internal List<int> ShipSizesToDestroy = new List<int>();
@@ -38,9 +37,7 @@ namespace BattleshipBot
 
         public IGridSquare SelectTarget()
         {
-            var nextTarget = Targetting.GetNext(this);
-            lastTarget = nextTarget;
-            return nextTarget;
+            return State == State.SinkingShip ? Targetting.GetNext(this) : Targetting.GetMostIsolated(this);
         }
 
         public void HandleShotResult(IGridSquare square, bool wasHit)
@@ -70,6 +67,6 @@ namespace BattleshipBot
             ShipSizesToDestroy.AddRange(new List<int>(){2,3,3,4,5});
         }
 
-        public string Name => "Transatlantic Labradoodle Leisure Ship";
+        public string Name => "V Cute Labradoodle Transport Ship";
     }
 }
